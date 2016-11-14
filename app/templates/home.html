@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="center">
+    <h3>Hello, {{ user['name'] }}.</h3>
+
+    <h5> Here's a list of your pages, choose one </h5>
+
+    <form action="/manage_page" method="post">
+    {% for page in pages %}
+        <button type="submit" name="page" value={{ page['id'] }}> {{ page['name'] }} </button>
+        <br>
+    {% endfor %}
+    </form>
+
+    <br><br>
+
+</div>
+{% endblock %}

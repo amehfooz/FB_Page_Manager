@@ -1,12 +1,15 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="center">
-    <p class='circle-image'
-       style="background-image: url(https://graph.facebook.com/{{ user['id'] }}/picture?type=large);
-              margin-left: auto; margin-right: auto;">
-    </p>
     <h3>Hello, {{ user['name'] }}.</h3>
-    <a href="/logout" id="logout">Log out</a>
+
+    <form action="/home">
+      <button type="submit" name="next" value="next"> Let's Get Started </button>
+    </form>
+
+    <br><br>
+
+    <a href="/logout" id="logout">Log out<br></a>
     <script>
         document.getElementById('logout').onclick = function() {
             FB.logout(function(response) { });

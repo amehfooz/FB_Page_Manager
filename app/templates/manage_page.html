@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+
+
+<div class="center">
+
+    <h3>Manage {{ session['page']['name'] }}.</h3>
+
+    <h5> What would you like to do? </h5>
+
+    <form action="/handle_management_request" method="post">
+        <button type="submit" value="list-pub"   name="action"> List all published posts   </button>
+        <button type="submit" value="list-unpub" name="action"> List all unpublished posts</button>
+        <button type="submit" value="add"        name="action"> Add a new Post </button>
+
+    </form>
+
+    <br><br>
+
+
+    <a href="/home" id="home">Home<br></a>
+
+</div>
+{% endblock %}

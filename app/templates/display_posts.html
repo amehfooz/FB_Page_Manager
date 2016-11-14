@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+
+
+<div class="center">
+    {% if (is_published == True) %}
+        <h3> Published Posts from {{session['page']['name']}} </h3>
+    {%endif%}
+
+    {% if (is_published == False) %}
+        <h3> Unpublished Posts from {{session['page']['name']}} </h3>
+    {%endif%}
+
+    {% for post in data %}
+        <h5> {{ post['Message']}} </h5>
+        <h6> Views: {{ post['Views']}} </h6>
+    {% endfor %}
+
+    {% if (next != None) %}
+    <form action="display_next_posts" method="post">
+      <button type="submit" value={{next}} name="next">Next</button><br>
+    </form>
+    {%endif%}
+
+    {% if (next == None) %}
+        <h5> End of Posts </h5>
+    {%endif%}
+
+    <br><br>
+
+
+    <a href="/home" id="home">Home<br></a>
+
+</div>
+{% endblock %}

@@ -36,7 +36,7 @@ def input_post():
 def handle_management_request():
     # Redirects to appropriate pages according to the action chosen by user
 
-    # First page of posts are fetched using the utils method get_posts. Views and Text is passed
+    # First page of posts are fetched using the FbUtils method get_posts. Views and Message are passed
     # onto html for display.
 
     # For add, redirected to an html page to input text.
@@ -65,6 +65,9 @@ def handle_management_request():
 
 @app.route('/display_next_posts', methods=['POST'])
 def display_next_posts():
+    # Retrieve next page of posts using requests and pass to FbUtils to get views for each post
+    # Views and Message are passed onto html for display.
+
     next_url = request.form['next']
     posts = requests.get(next_url).json()
     page_token = session['page']['access_token']
@@ -75,11 +78,11 @@ def display_next_posts():
         posts_next = None
     else:
         posts_next = posts['paging']['next']
-    return render_template('display_posts.html', data = processed_posts, next = posts_next)
+    return render_template('display_posts.html', data = processed_posts, next = posts_next, is_published = published)
 
 @app.route('/pagemanagementredirect')
 def pagemanagementredirect():
-    #Redirect to page management menu
+    # Redirect to page management menu
     return render_template('manage_page.html')
 
 @app.route('/home')
@@ -114,8 +117,8 @@ def logout():
     by the JavaScript SDK.
     """
     session.pop('user', None)
-    g.user = None
-    g.graph = None
+    #g.user = None
+    #g.graph = None
     return redirect(url_for('index'))
 
 
@@ -135,8 +138,12 @@ def get_current_user():
     # Set the user in the session dictionary as a global g.user and bail out
     # of this function early.
     if session.get('user'):
-        g.user = session.get('user')
-        g.fbutils = FbUtils(GraphAPI(g.user['access_token']))
+        try:
+            g.user = session.get('user')
+            g.fbutils = FbUtils(GraphAPI(g.user['access_token']))
+        except:
+            g.user = None
+
         return
 
     # Attempt to get the short term access token for the current user.

@@ -1,6 +1,5 @@
 from facebook import get_user_from_cookie, GraphAPI
 from threading import Thread
-import time
 
 class FbUtils:
     def __init__(self, api):
@@ -16,6 +15,7 @@ class FbUtils:
             self.page_lookup[page['id']] = page
 
     def get_pages(self):
+        # Get list of all pages managed by the current user
         return self.page_list
 
     def id_to_page(self, page_id):
@@ -34,16 +34,25 @@ class FbUtils:
         return page_api.put_wall_post(msg,attachment=attributes);
         
     def get_posts(self, page_id, published):
+        # Get all posts for a page based on their 'is_published' attribute
         args = {'is_published' : published}
-        posts = self.api.request(page_id+"/promotable_posts",args = args)
+        posts = self.api.get_object(page_id+"/promotable_posts",args = args)
 
         return posts
 
     def process_posts(self, posts):
+        # Given a list of posts, retrieve the number of views for each post and return an array containing 
+        # the message and views for each post to be passed on to html.
+        # Retrieving views for each post requires a get request, making these requests sequentially
+        # creates a large overhead. Therefore, to improve performance each get request is passed to a new
+        # thread so that we can make multiple requests simultaneously
         if not posts:
             return None
 
+        threads = []
         processed_posts = []
+        index = 0
+        view_counts = [0] * len(posts["data"])
 
         for post in posts["data"]:
             if "message" in post:
@@ -51,15 +60,30 @@ class FbUtils:
             else:
                 message = ""
 
-            view_count = self.get_post_viewcount(post["id"])
-            processed_posts.append({'Message' : message, 'Views' : view_count})
+            newthread = Thread(target=self.get_post_viewcount, args=[post['id'], view_counts, index])
+            newthread.start()
+
+            threads.append(newthread)
+
+            processed_posts.append({'Message' : message, 'Views' : 0})
+
+        # Wait for all threads to finish before adding results to processed_posts
+        for thread in threads:
+            thread.join()
+
+        for i in range(len(processed_posts)):
+            processed_posts[i]['Views'] = view_counts[i]
 
         return processed_posts
 
-    def get_post_viewcount(self, post_id):
+    def get_post_viewcount(self, post_id, view_counts, index):
+        # Given a post id, retrieve the number of views for the post.
+        # The results are added to an array at a given index because this function
+        # is expected to be called in a separate thread
+
         views = self.api.get_object(post_id + "/insights/post_impressions_unique")
 
         if not views["data"]:
-            return 0
+            return 
 
-        return views["data"][0]["values"][0]["value"]
+        view_counts[index] = views["data"][0]["values"][0]["value"]
